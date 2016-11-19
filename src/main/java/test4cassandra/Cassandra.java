@@ -31,7 +31,7 @@ import org.apache.hadoop.mapreduce.Job;
 
 public class Cassandra {
 	
-	public static final String host = "hdfs://localhost:9000";
+	public static final String host = "hdfs://test1:9000";
 	public static Schema schema;
 	
 	public static final int debug = 1;
@@ -63,7 +63,7 @@ public class Cassandra {
 		Job job = new Job(conf, "PageViewLog");
 		job.setJarByClass(Cassandra.class);
 
-		FileInputFormat.addInputPath(job, new Path(host + "/user/donnn/parquet/parquet.in"));
+		FileInputFormat.addInputPath(job, new Path(host + "/data/rawText/adv1475686807011.dat"));
 		FileOutputFormat.setOutputPath(job, new Path(host + "/user/donnn/parquet/parquet.out"));
 		
 		job.setMapperClass(MapCassandra.class);

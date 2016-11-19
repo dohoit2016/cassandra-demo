@@ -47,7 +47,7 @@ public class MapCassandra extends Mapper<LongWritable, Text, Void, Void> {
 //		}
 		
 //		cluster = Cluster.builder().addContactPoint("10.3.24.154").build();
-		cluster = Cluster.builder().addContactPoint("localhost").withCredentials("", "").build();
+		cluster = Cluster.builder().addContactPoint("10.3.24.154").withCredentials("", "").build();
 		cluster.init();
 		System.out.println("OK");
 		session = cluster.connect("donnn");
