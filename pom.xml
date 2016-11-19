@@ -7,7 +7,10 @@ Test.java fail
   <groupId>vn.vccorp</groupId>
   <artifactId>vn.vccorp.test4.cassandra</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <url>http://maven.apache.org</url>
+  <packaging>jar</packaging>
+
+	<name>mr_cassandra</name>
+	<url>http://maven.apache.org</url>
 	<repositories>
 		<repository>
 			<id>sonatype-nexus-snapshots</id>
@@ -48,13 +51,6 @@ Test.java fail
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>jdk.tools</groupId>
-			<artifactId>jdk.tools</artifactId>
-			<version>1.8</version>
-			<scope>system</scope>
-			<systemPath>/opt/jdk1.8.0_101/lib/tools.jar</systemPath>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>3.8.1</version>
@@ -75,11 +71,11 @@ Test.java fail
 			<artifactId>hadoop-common</artifactId>
 			<version>2.4.0</version>
 		</dependency>
-		<dependency> 
-		  <groupId>org.apache.hadoop</groupId> 
-		  <artifactId>hadoop-mapreduce-client-core</artifactId> 
-		  <version>2.5.1</version> 
-	  </dependency> 
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-core</artifactId>
+			<version>1.2.1</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
