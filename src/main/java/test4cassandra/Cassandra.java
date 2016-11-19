@@ -63,7 +63,7 @@ public class Cassandra {
 		Job job = new Job(conf, "PageViewLog");
 		job.setJarByClass(Cassandra.class);
 
-		FileInputFormat.addInputPath(job, new Path(host + "/data/rawText/adv1475686807011.dat"));
+		FileInputFormat.addInputPath(job, new Path(host + "/data/rawText/adv1475702080966.dat"));
 		FileOutputFormat.setOutputPath(job, new Path(host + "/user/donnn/parquet/parquet.out"));
 		
 		job.setMapperClass(MapCassandra.class);
