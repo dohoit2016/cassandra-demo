@@ -2,7 +2,13 @@ package vn.vccorp.test4.cassandra;
 
 import static java.lang.System.out;
 
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+import java.util.Map.Entry;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
@@ -29,6 +35,15 @@ public class Test {
 	public static String table = "test";
 
 	public static void main(String[] args) {
+		
+		Cluster cluster = Cluster.builder().addContactPoint("10.3.24.154").withCredentials("", "").build();
+		cluster.init();
+		System.out.println("OK");
+		Session session = cluster.connect("donnn");
+		
+		PreparedStatement ps;
+		BoundStatement bs;
+		
 		// TODO Auto-generated method stub
 		
 //		Cluster cluster = Cluster.builder().addContactPoint("localhost").build();
@@ -52,16 +67,16 @@ public class Test {
 //		}
 //		cluster.close();
 		
-		cluster = Cluster.builder().addContactPoint(node).withCredentials(usercame, password).withPort(portConn).build();
-		cluster.init();
-		System.out.println("He");
-		final Metadata metadata = cluster.getMetadata();
-		out.printf("Connected to cluster: %s\n", metadata.getClusterName());
-		for (final Host host : metadata.getAllHosts()) {
-			out.printf("Datacenter: %s; Host: %s; Rack: %s\n", host.getDatacenter(), host.getAddress(), host.getRack());
-		}
-		session = cluster.connect(keySpace);
-		out.println("connected!");
+//		cluster = Cluster.builder().addContactPoint(node).withCredentials(usercame, password).withPort(portConn).build();
+//		cluster.init();
+//		System.out.println("He");
+//		final Metadata metadata = cluster.getMetadata();
+//		out.printf("Connected to cluster: %s\n", metadata.getClusterName());
+//		for (final Host host : metadata.getAllHosts()) {
+//			out.printf("Datacenter: %s; Host: %s; Rack: %s\n", host.getDatacenter(), host.getAddress(), host.getRack());
+//		}
+//		session = cluster.connect(keySpace);
+//		out.println("connected!");
 		
 //		Date
 		
@@ -71,9 +86,10 @@ public class Test {
 //		}
 //		cluster.close();
 		
-//		PreparedStatement ps = session.prepare("INSERT INTO pageviewlog (guid, time_create) VALUES (?, ?)");
-//		BoundStatement bs = ps.bind((long) 12346);
-//		bs.setTimestamp("time_create", new Date());
+//		PreparedStatement ps = session.prepare("INSERT INTO donnn.pageviewlog (guid, time_create, ip) VALUES (?, ?, ?)");
+//		BoundStatement bs = ps.bind(Long.parseLong("2937907151952574147"));
+//		bs.setDate("time_create", new Date(2016, 10, 6, 1, 25, 41));
+//		bs.setLong("ip", Long.parseLong("1952573829"));
 //		BoundStatement bs = ps.bind(1, "male");
 //		bs.setString("first_name", "hoa");
 //		bs.setString("last_name", "nguyen tat");
@@ -90,13 +106,66 @@ public class Test {
 //		session.execute(bs);
 //		PreparedStatement ps = session.prepare("S)
 //		
-		System.out.println("done insert");
-//		
-		ResultSet rs = session.execute("SELECT * FROM pageviewlog");
+//		System.out.println("done insert");
+////		
+//		ResultSet rs = session.execute("SELECT * FROM pageviewlog");
+//		for(Row row : rs){
+//			System.out.println(row.getLong("guid"));
+//		}
+//		System.out.println("end");
+//		cluster.close();
+		
+		
+		
+		// Job 2
+		
+		
+		ps = session.prepare("SELECT ip FROM donnn.pageviewlog WHERE guid = ?");
+		
+		bs = ps.bind(Long.parseLong(args[0]));
+		
+		Map<Long, Long> map = new HashMap<Long, Long>();
+		
+		ResultSet rs = session.execute(bs);
 		for(Row row : rs){
-			System.out.println(row.getLong("guid"));
+//			System.out.println(row.getLong("ip"));
+			Long ip = new Long(row.getLong("ip"));
+			if (map.containsKey(ip)){
+				map.put(ip, map.get(ip) + 1);
+			}
+			else {
+				map.put(ip, new Long(1));
+			}
 		}
-		System.out.println("end");
+		
+		Set<Entry<Long, Long>> entries = map.entrySet();
+		
+		Vector<Entry<Long, Long>> vector = new Vector();
+		
+		for(Entry<Long, Long> entry : entries){
+			vector.add(entry);
+		}
+		
+		System.out.println("Start sorting " + vector.size() + " element(s)...");
+		
+		vector.sort(new Comparator<Entry<Long, Long>>() {
+			
+			public int compare(Entry<Long, Long> o1, Entry<Long, Long> o2) {
+				// TODO Auto-generated method stub
+				return (int) (o2.getValue().longValue() - o1.getValue().longValue());
+			}
+		});
+		
+		System.out.println("Done sorting. Printing...");
+		
+		for(Entry<Long, Long> entry : vector){
+			System.out.println(entry.getKey().longValue() + " : " + entry.getValue().longValue());
+		}
+		
+		System.out.println("Done Job.");
+		
+		session.close();
+		
 		cluster.close();
 
 	}

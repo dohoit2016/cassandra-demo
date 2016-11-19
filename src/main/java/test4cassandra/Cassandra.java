@@ -64,25 +64,23 @@ public class Cassandra {
 //		Schema schema = parser.parse((InputStream) new FileInputStream("/schema.json"));
 		
 //		
-		Parser parser = new Schema.Parser();
+//		Parser parser = new Schema.Parser();
 		System.out.println("Main");
 		
-		FileSystem fs = FileSystem.get(conf);
-		Path path = new Path(host + "/user/donnn/parquet/schema.json");
-		
-		schema = parser.parse(fs.open(path));
-		
+//		FileSystem fs = FileSystem.get(conf);
+//		Path path = new Path(host + "/user/donnn/parquet/schema.json");
+//		
+//		schema = parser.parse(fs.open(path));
+//		
 		Job job = new Job(conf, "PageViewLog");
 		job.setJarByClass(Cassandra.class);
 
-		FileInputFormat.addInputPath(job, new Path(host + "/user/donnn/parquet/parquet.in"));
-		FileOutputFormat.setOutputPath(job, new Path(host + "/user/donnn/parquet/parquet.out"));
+		FileInputFormat.addInputPath(job, new Path(host + "/data/rawText"));
+		FileOutputFormat.setOutputPath(job, new Path(host + "/user/donnn/cassandra/cassandra.out"));
 		
 		job.setMapperClass(MapCassandra.class);
-		// job.setReducerClass(ReduceParquet.class);
 		job.setNumReduceTasks(0);
-		
-		
+
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
 		
@@ -94,59 +92,14 @@ public class Cassandra {
 		
 		
 		
-		//job.waitForCompletion(true);
+		job.waitForCompletion(true);
+		
+		System.out.println("Done import data to Cassandra");
 //		
 //		
 		
 		
 		// End
-		
-		Cluster cluster = Cluster.builder().addContactPoint("10.3.24.154").withCredentials("", "").build();
-		cluster.init();
-		System.out.println("OK");
-		Session session = cluster.connect("donnn");
-		
-		// Job 2
-		
-		
-		PreparedStatement ps = session.prepare("SELECT ip FROM donnn.pageviewlog WHERE guid = ?");
-		
-		BoundStatement bs = ps.bind(Long.parseLong(args[0]));
-		
-		Map<Long, Long> map = new HashMap<Long, Long>();
-		
-		ResultSet rs = session.execute(bs);
-		for(Row row : rs){
-			System.out.println(row.getLong("ip"));
-			Long ip = new Long(row.getLong("ip"));
-			if (map.containsKey(ip)){
-				map.put(ip, map.get(ip) + 1);
-			}
-			else {
-				map.put(ip, new Long(1));
-			}
-		}
-		
-		Set<Entry<Long, Long>> entries = map.entrySet();
-		
-		Vector<Entry<Long, Long>> vector = new Vector();
-		
-		for(Entry<Long, Long> entry : entries){
-			vector.add(entry);
-		}
-		
-		vector.sort(new Comparator<Entry<Long, Long>>() {
-			
-			public int compare(Entry<Long, Long> o1, Entry<Long, Long> o2) {
-				// TODO Auto-generated method stub
-				return (int) (o2.getValue().longValue() - o1.getValue().longValue());
-			}
-		});
-		
-		for(Entry<Long, Long> entry : vector){
-			System.out.println(entry.getKey().longValue());
-		}
-		
 		
 		
 		return ;

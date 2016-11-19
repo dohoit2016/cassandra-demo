@@ -5,6 +5,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.avro.Schema;
@@ -29,21 +31,22 @@ public class MapCassandra extends Mapper<LongWritable, Text, Text, Text> {
 	public static Cluster cluster;
 	public static Session session;
 	
-	protected Date dateFromString(String s){
-		String[] parts = s.split(" ");
-		String[] days = parts[0].split("-");
-		String[] times = parts[1].split(":");
-		int year = Integer.parseInt(days[0]);
-		int month = Integer.parseInt(days[1]);
-		int date = Integer.parseInt(days[2]);
-		
-		int hour = Integer.parseInt(times[0]);
-		int min = Integer.parseInt(times[1]);
-		int second = Integer.parseInt(times[2]);
-//		Date d = new Date();
-		
-		
-		return new Date(year, month, date, hour, min, second);
+	protected Date dateFromString(String s) throws ParseException{
+//		String[] parts = s.split(" ");
+//		String[] days = parts[0].split("-");
+//		String[] times = parts[1].split(":");
+//		int year = Integer.parseInt(days[0]);
+//		int month = Integer.parseInt(days[1]);
+//		int date = Integer.parseInt(days[2]);
+//		
+//		int hour = Integer.parseInt(times[0]);
+//		int min = Integer.parseInt(times[1]);
+//		int second = Integer.parseInt(times[2]);
+////		Date d = new Date();
+//		
+//		
+//		return new Date(year, month, date, hour, min, second);
+		return (new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(s));
 	}
 	
 	@Override
@@ -86,7 +89,7 @@ public class MapCassandra extends Mapper<LongWritable, Text, Text, Text> {
 		
 		if (fields.length >=19 ){
 			try {
-				PreparedStatement ps = session.prepare("INSERT INTO donnn.pageviewlog (time_create, cookie_create, browser_code, browser_ver, os_code, os_ver, ip, loc_id, domain, site_id, c_id, path, referer, guid, flash_version, jre, sr, sc, geographic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				PreparedStatement ps = session.prepare("INSERT INTO donnn.pageviewlog (time_create, cookie_create, browser_code, browser_ver, os_code, os_ver, ip, loc_id, domain, site_id, c_id, path, referer, guid, flash_version, jre, sr, sc, geographic, time_diff) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				
 				BoundStatement bs = ps.bind();
 				
@@ -110,6 +113,12 @@ public class MapCassandra extends Mapper<LongWritable, Text, Text, Text> {
 				bs.setString("sr"            , fields[16]);
 				bs.setString("sc"            , fields[17]);
 				bs.setInt("geographic"       , Integer.parseInt(fields[18]));
+				long diff = dateFromString(fields[0]).getTime() - dateFromString(fields[1]).getTime();
+				if (diff < 0){
+					diff = 0;
+				}
+				diff = (long) diff / 1000 / 60;
+				bs.setLong("time_diff", diff);
 				
 				session.execute(bs);
 			}
@@ -118,7 +127,7 @@ public class MapCassandra extends Mapper<LongWritable, Text, Text, Text> {
 				context.write(new Text("he: "), new Text(e.toString()));
 			}
 			
-			// CREATE TABLE pageviewlog (time_create timestamp, cookie_create timestamp, browser_code int, browser_ver text, os_code int, os_ver text, ip bigint, loc_id int, domain text, site_id int, c_id int, path text, referer text, guid bigint, flash_version text, jre text, sr text, sc text, geographic int, PRIMARY KEY (guid, time_create)) ;
+			// CREATE TABLE pageviewlog (time_create timestamp, cookie_create timestamp, browser_code int, browser_ver text, os_code int, os_ver text, ip bigint, loc_id int, domain text, site_id int, c_id int, path text, referer text, guid bigint, flash_version text, jre text, sr text, sc text, geographic int, time_diff bigint, PRIMARY KEY (guid, time_diff, time_create)) ;
 			
 		}
 		else {
