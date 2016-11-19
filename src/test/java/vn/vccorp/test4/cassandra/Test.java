@@ -63,6 +63,8 @@ public class Test {
 		session = cluster.connect(keySpace);
 		out.println("connected!");
 		
+//		Date
+		
 //		ResultSet rs = session.execute("INSERT INTO test (id, detail) VALUES");
 //		for(Row row : rs){
 //			System.out.println(row.getString("guid"));
