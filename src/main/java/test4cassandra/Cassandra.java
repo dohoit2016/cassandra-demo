@@ -15,17 +15,13 @@ import java.util.Vector;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.mapreduce.AvroJob;
+//import org.apache.avro.mapreduce.AvroJob;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-
-import parquet.avro.AvroParquetOutputFormat;
-import parquet.avro.AvroParquetReader;
-import parquet.hadoop.example.ExampleInputFormat;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -35,7 +31,7 @@ import org.apache.hadoop.mapreduce.Job;
 
 public class Cassandra {
 	
-	public static final String host = "hdfs://test1:9000";
+	public static final String host = "hdfs://localhost:9000";
 	public static Schema schema;
 	
 	public static final int debug = 1;
@@ -74,22 +70,19 @@ public class Cassandra {
 		// job.setReducerClass(ReduceParquet.class);
 		job.setNumReduceTasks(0);
 		
-		job.setOutputFormatClass(AvroParquetOutputFormat.class);
-		AvroParquetOutputFormat.setSchema(job, schema);
 		
 		job.setMapOutputKeyClass(Void.class);
-		job.setMapOutputValueClass(Group.class);
-		
-		
-		job.setOutputFormatClass(AvroParquetOutputFormat.class);
-		
-		
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
+		job.setMapOutputValueClass(Void.class);
 		
 		
 		
-//		job.waitForCompletion(true);
+		
+		job.setOutputKeyClass(Void.class);
+		job.setOutputValueClass(Void.class);
+		
+		
+		
+		job.waitForCompletion(true);
 //		
 //		
 		
