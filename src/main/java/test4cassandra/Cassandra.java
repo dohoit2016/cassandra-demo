@@ -22,7 +22,10 @@ import org.apache.avro.generic.GenericRecord;
 //import org.apache.avro.mapreduce.AvroJob;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -67,8 +70,13 @@ public class Cassandra {
 //		Parser parser = new Schema.Parser();
 		System.out.println("Main");
 		
-//		FileSystem fs = FileSystem.get(conf);
-//		Path path = new Path(host + "/user/donnn/parquet/schema.json");
+		FileSystem fs = FileSystem.get(conf);
+		Path path = new Path(host + "/data/rawText/");
+		RemoteIterator<LocatedFileStatus> ri = fs.listFiles(path, false);
+		while (ri.hasNext()){
+			LocatedFileStatus lfs = ri.next();
+			System.out.println(lfs.getPath().toString() + " : " + lfs.getSymlink().toString());
+		}
 //		
 //		schema = parser.parse(fs.open(path));
 //		
