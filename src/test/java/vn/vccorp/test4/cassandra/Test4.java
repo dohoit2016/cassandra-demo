@@ -20,6 +20,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.exceptions.ReadTimeoutException;
 
 public class Test4 {
 	
@@ -35,7 +36,7 @@ public class Test4 {
 	public static String keySpace = "donnn";
 	public static String table = "test";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws com.datastax.driver.core.exceptions.ReadTimeoutException {
 		
 		Cluster cluster = Cluster.builder().addContactPoint("10.3.24.154").withCredentials("", "").build();
 		cluster.init();
@@ -116,34 +117,86 @@ public class Test4 {
 		
 		
 		
-		ps = session.prepare("SELECT guid FROM donnn.pageviewlog where time_diff <= 30 ALLOW FILTERING");
+//		ps = session.prepare("SELECT guid FROM donnn.pageviewlog where time_diff <= 30 ALLOW FILTERING");
+		ps = session.prepare("SELECT guid FROM donnn.pageviewlog");
 		
 //		bs = ps.bind(Long.parseLong(args[0]));
 		bs = ps.bind();
+		System.out.println("bound");
+		int pageSize = 10;
+		bs.setFetchSize(pageSize);
+		System.out.println("start executing");
 //		bs = ps.bind(Long.parseLong("2937907151952574147"));
 		
 		int check = 0;
-		ResultSet rs = session.execute(bs);
 		Set<Long> guids = new HashSet<Long>();
 		
 //		System.out.println("Processing..." + rs.all().size() + " row(s)...");
-		for(Row row : rs){
-			guids.add(new Long(row.getLong("guid")));
+		int Case = 2;
+		if (Case == 1){
+			System.out.println("direct");
+			ResultSet rs = session.execute(bs);
+			System.out.println("done executation");
+			
+			int stt = 0;
+			for(Row row : rs){
+				if (stt % 1000 == 0){
+					System.out.println(pageSize + " : " + stt + " : " + row.getLong("guid"));
+				}
+				stt++;
+				guids.add(new Long(row.getLong("guid")));
+			}
+			
+			System.out.println("Done processing.");
+			
+			for(Long guid : guids){
+//				System.out.println(guid.longValue());
+			}
+			
+			System.out.println("Prited " + guids.size() + " guid(s).");
+			
+			System.out.println("Done Job.");
+			
+			session.close();
+			
+			cluster.close();
 		}
 		
-		System.out.println("Done processing.");
-		
-		for(Long guid : guids){
-			System.out.println(guid.longValue());
+		else {
+			System.out.println("try catch");
+			try {
+				ResultSet rs = session.execute(bs);
+				System.out.println("done execute");
+				
+				int stt = 0;
+				for(Row row : rs){
+					if (stt % 1000 == 0){
+						System.out.println(pageSize + " : " + stt + " : " + row.getLong("guid"));
+					}
+					stt++;
+					guids.add(new Long(row.getLong("guid")));
+				}
+				
+				System.out.println("Done processing.");
+			}
+			catch (Exception e){
+				
+			}
+			
+			finally{
+				System.out.println("Prited " + guids.size() + " guid(s).");
+				
+				System.out.println("Done Job.");
+				
+				session.close();
+				
+				cluster.close();
+			}
 		}
 		
-		System.out.println("Prited " + guids.size() + " guid(s).");
 		
-		System.out.println("Done Job.");
 		
-		session.close();
 		
-		cluster.close();
 
 	}
 

@@ -44,7 +44,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.Counters.Group;
 import org.apache.hadoop.mapreduce.Job;
 
-public class Cassandra {
+public class CassandraPartByPart {
 	
 	public static final String host = "hdfs://test1:9000";
 	public static Schema schema;
@@ -71,36 +71,70 @@ public class Cassandra {
 		System.out.println("Main");
 		
 		FileSystem fs = FileSystem.get(conf);
-		Path path = new Path(host + "/data/rawText/");
+//		Path path = new Path(host + "/user/donnn/cassandra/cassandra.in");
+		Path path = new Path(host + "/data/rawText");
 		RemoteIterator<LocatedFileStatus> ri = fs.listFiles(path, false);
+		int stt = Integer.parseInt(args[0]);
+		if (stt < 0){
+			stt = 0;
+		}
+		BufferedWriter bw = null;
+		Vector<LocatedFileStatus> vector = new Vector();
 		while (ri.hasNext()){
-			LocatedFileStatus lfs = ri.next();
-			System.out.println(lfs.getPath().toString() + " : " + lfs.getSymlink().toString());
+			vector.add(ri.next());
+		}
+		int size = vector.size();
+		while (stt < size){
+			System.out.println("loop: " + stt);
+			LocatedFileStatus lfs = vector.get(stt);
+			try {
+				System.out.println("processing " + stt + "/" + size + " : " + lfs.getPath().toString());
+				bw = new BufferedWriter(new OutputStreamWriter(fs.append(new Path("/user/donnn/cassandra.progress.txt"))));
+				bw.write("processing " + stt + "/" + size + " : " + lfs.getPath().toString() + "\n");
+				bw.flush();
+				Job job = new Job(conf, "PageViewLog");
+				
+				
+				job.setJarByClass(CassandraPartByPart.class);
+		
+				FileInputFormat.addInputPath(job, lfs.getPath());
+				FileOutputFormat.setOutputPath(job, new Path(host + "/user/donnn/cassandra/cassandra.chunk.out/" + stt));
+				
+				job.setMapperClass(MapCassandra.class);
+				job.setNumReduceTasks(0);
+		
+				job.setMapOutputKeyClass(Text.class);
+				job.setMapOutputValueClass(Text.class);
+				
+				
+				
+				
+				job.setOutputKeyClass(Text.class);
+				job.setOutputValueClass(Text.class);
+				
+				
+				
+				job.waitForCompletion(true);
+				bw.write("processed: " + lfs.getPath().toString() + "\n");
+				bw.flush();
+			}
+			catch (Exception e){
+				System.out.println(e.toString());
+			}
+			finally {
+				stt++;
+				try {
+					bw.close();
+				}
+				catch (Exception e){
+					System.out.println(e.toString());
+				}
+			}
 		}
 //		
 //		schema = parser.parse(fs.open(path));
 //		
-		Job job = new Job(conf, "PageViewLog");
-		job.setJarByClass(Cassandra.class);
-
-		FileInputFormat.addInputPath(job, new Path(host + "/data/rawText"));
-		FileOutputFormat.setOutputPath(job, new Path(host + "/user/donnn/cassandra/cassandra.out"));
-		
-		job.setMapperClass(MapCassandra.class);
-		job.setNumReduceTasks(0);
-
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(Text.class);
-		
-		
-		
-		
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
-		
-		
-		
-//		job.waitForCompletion(true);
+//		
 		
 		System.out.println("Done import data to Cassandra");
 //		
